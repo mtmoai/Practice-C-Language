@@ -3,12 +3,12 @@
 int main(void){
     const int MONEY = 3000;
     int pocket = MONEY;
-    printf("apple ");
+    printf("Apple ");
     while (pocket >= 120) {
         printf("*");
         pocket = pocket - 120;
     }
-    printf("Remaining ¥¥%d¥n", pocket);
+    printf(" Remaining ¥%d\n", pocket);
 
     pocket = MONEY;
     printf("Orange ");
@@ -18,7 +18,7 @@ int main(void){
         }
         pocket = pocket - 400;
     }
-    printf("Remaining ¥¥%d¥n", pocket);
+    printf(" Remaining ¥%d\n", pocket);
 
     return 0;
 }   
