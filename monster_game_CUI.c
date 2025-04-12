@@ -336,6 +336,8 @@ void checkAllGems(BattleField* pField)
             compactGems(pField->gems);
         } else if(combo.banishableNum == 0) break;
     }
+    
+    generateNewGems(pField->gems);
   }
 }
 
