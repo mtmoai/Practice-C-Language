@@ -476,6 +476,7 @@ int countSpecificGmes(Element* pGems, Element target)
   return count;
 }
 
+// (H) 引数を指定値分だけ変動させて返却する関数
 int randomizedDamage(int base, int blurNum)
 {
     int blurPercent = rand() % (blurNum * 2 + 1) - blurNum + 100;
@@ -483,6 +484,7 @@ int randomizedDamage(int base, int blurNum)
     return damage;
 }
 
+// (I) 敵の攻撃ダメージを計算する関数
 int computeEnemyAttack(Monster* pEnemy, Party* pParty)
 {
     int base = pEnemy->attack - pParty->aveDeffence;
@@ -491,6 +493,7 @@ int computeEnemyAttack(Monster* pEnemy, Party* pParty)
     return damage;
 }
 
+// (J) 味方の攻撃ダメージを計算する関数
 int computePartyAttack(Monster* pEnemy, Monster* pAttacker, int comboNum, int allBanishNum)
 {
     int base = (pAttacker->attack - pEnemy->defense) *
@@ -507,6 +510,7 @@ int computePartyAttack(Monster* pEnemy, Monster* pAttacker, int comboNum, int al
     return damage;
 }
 
+// (K) 味方パーティの合計HPの回復量を計算する関数
 int computeRecoveryAmount(Party* pParty, int comboNum, int allBanishNum)
 {
     int hpBuf = pParty->partyHp;
