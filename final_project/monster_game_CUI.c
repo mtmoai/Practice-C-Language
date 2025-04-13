@@ -69,7 +69,7 @@ int engageCombat(Party* pPartyinfo, Monster* pEnemy);
 Party assembleTeam(char* playerName,Monster* pMonsters, int monsterNum);
 void displayTeam(Party* pPartyinfo);
 void playerTurn(BattleField* pBattleField);
-void performAttack(BattleField* pField, Banishinfo* bi, int comboNum, int allBanishnum);
+void performAttack(BattleField* pField, Banishinfo* bi, int comboNum);
 void enemyTurn(BattleField* pBattleField);
 void enemyStrike(Monster* pEnemy, Party* pPartyinfo);
 void displayBattlefield(BattleField* pBattleField);
@@ -77,9 +77,9 @@ bool validateCommand(char* pInput);
 void exchangeGem(Element* gems, int pos, int step);
 void checkAllGems(BattleField* pField);
 Banishinfo identifyRemovableGems(Element* pGems);
-void removeGems(BattleField* pField, Banishinfo* banishable, int comboNum, int allBanishNum);
+void removeGems(BattleField* pField, Banishinfo* bi, int comboNum);
 void compactGems(Element* pGems);
-void recoverHealth(BattleField* pField, int comboNum, int allBanishNum);
+void recoverHealth(BattleField* pField, Banishinfo* bi,int comboNum);
 
 // ユーティリティ関数
 void showMonsterName(Monster* monster);
@@ -91,8 +91,8 @@ int countSpecificGmes(Element* pGems, Element target);
 void generateNewGems(Element* pGems);
 int randomizedDamage(int base, int blurNum);
 int computeEnemyAttack(Monster* pEnemy, Party* pParty);
-int computePartyAttack(Monster* pEnemy, Monster* pAttacker, int comboNum, int allBanishNum);
-int computeRecoveryAmount(Party* pParty, int comboNum, int allBanishNum);
+int computePartyAttack(Monster* pEnemy, Monster* pAttacker, Banishinfo* bi, int comboNum);
+int computeRecoveryAmount(Party* pParty, Banishinfo* bi, int comboNum);
 
 // Functions Declation parts
 
@@ -231,13 +231,13 @@ void playerTurn(BattleField* pBattleField)
 }
 
 //(7) performAttack関数
-void performAttack(BattleField* pField, Banishinfo* bi, int comboNum, int allBanishnum)
+void performAttack(BattleField* pField, Banishinfo* bi, int comboNum)
 {
     for (int i = 0; i < pField->pParty->numMonsters; i++){
         Monster attacker = pField->pParty->partyMonsters[i];
         
         if (attacker.element == bi->banishableElement){
-            int damage = computePartyAttack(pField->pMonsters, &attacker, comboNum, allBanishnum);
+            int damage = computePartyAttack(pField->pMonsters, &attacker, bi, comboNum);
             pField->pMonsters->hp -= damage;
             
             if (comboNum == 1){
@@ -307,19 +307,17 @@ void checkAllGems(BattleField* pField)
 {
   Banishinfo banishable = identifyRemovableGems(pField->gems);
   int comboNum = 1;
-  int allBanishNum = banishable.banishableNum;
 
   if(banishable.banishableNum != 0) {
-    removeGems(pField, &banishable, comboNum, allBanishNum);
+    removeGems(pField, &banishable, comboNum);
     compactGems(pField->gems);
 
     while (true) {
         Banishinfo combo = identifyRemovableGems(pField->gems);
         if(combo.banishableNum != 0) {
             comboNum++;
-            allBanishNum = combo.banishableNum;
 
-            removeGems(pField, &combo, comboNum, allBanishNum);
+            removeGems(pField, &combo, comboNum);
             compactGems(pField->gems);
         } else if(combo.banishableNum == 0) break;
     }
@@ -330,9 +328,8 @@ void checkAllGems(BattleField* pField)
         Banishinfo combo = identifyRemovableGems(pField->gems);
         if(combo.banishableNum != 0) {
             comboNum++;
-            allBanishNum = combo.banishableNum;
 
-            removeGems(pField, &combo, comboNum, allBanishNum);
+            removeGems(pField, &combo, comboNum);
             compactGems(pField->gems);
         } else if(combo.banishableNum == 0) break;
     }
@@ -365,18 +362,18 @@ Banishinfo identifyRemovableGems(Element* pGems)
 }
 
 // (14) 宝石を消去して効果を発動する関数
-void removeGems(BattleField* pField, Banishinfo* banishable, int comboNum, int allBanishNum)
+void removeGems(BattleField* pField, Banishinfo* bi, int comboNum)
 {
-  for (int i = banishable->banishableFrom; i < banishable->banishableFrom + banishable->banishableNum; i++) {
+  for (int i = bi->banishableFrom; i < bi->banishableFrom + bi->banishableNum; i++) {
     pField->gems[i] = EMPTY;
   }
     displayGems(pField->gems);
-    switch(banishable->banishableElement){
+    switch(bi->banishableElement){
         case FLAME: case LEAF: case AQUA: case GROUND:
-            performAttack(pField, banishable, comboNum, allBanishNum);
+            performAttack(pField, bi, comboNum);
             break;
         case SOUL:
-            recoverHealth(pField,  comboNum, allBanishNum);
+            recoverHealth(pField, bi, comboNum);
     }
 }
 
@@ -405,9 +402,9 @@ void generateNewGems(Element* pGems)
   printf("\n");
 }
 
-void recoverHealth(BattleField* pField, int comboNum, int allBanishNum)
+void recoverHealth(BattleField* pField, Banishinfo* bi,int comboNum)
 {
-    int damage = computeRecoveryAmount(pField->pParty, comboNum, allBanishNum);
+    int damage = computeRecoveryAmount(pField->pParty, bi, comboNum);
     pField->pParty->partyHp += damage;
     printf("HPが %d 回復した!\n", damage);
 }
@@ -494,14 +491,14 @@ int computeEnemyAttack(Monster* pEnemy, Party* pParty)
 }
 
 // (J) 味方の攻撃ダメージを計算する関数
-int computePartyAttack(Monster* pEnemy, Monster* pAttacker, int comboNum, int allBanishNum)
+int computePartyAttack(Monster* pEnemy, Monster* pAttacker, Banishinfo* bi, int comboNum)
 {
     int base = (pAttacker->attack - pEnemy->defense) *
     BOOST_DAMAGE[pAttacker->element][pEnemy->element];
     double comboPlus = 1;
 
     if (comboNum >= 2){
-        for (int i = 0; i < allBanishNum -3 + comboNum; i++){
+        for (int i = 0; i < bi->banishableNum -3 + comboNum; i++){
             comboPlus *= 1.5;
         }
     }
@@ -511,17 +508,17 @@ int computePartyAttack(Monster* pEnemy, Monster* pAttacker, int comboNum, int al
 }
 
 // (K) 味方パーティの合計HPの回復量を計算する関数
-int computeRecoveryAmount(Party* pParty, int comboNum, int allBanishNum)
+int computeRecoveryAmount(Party* pParty, Banishinfo* bi, int comboNum)
 {
     int hpBuf = pParty->partyHp;
     double comboPlus = 1;
 
     if (comboNum >= 2){
-        for (int i = 0; i < allBanishNum -3 + comboNum; i++){
+        for (int i = 0; i < bi->banishableNum -3 + comboNum; i++){
             comboPlus *= 1.5;
         }
         printf("allBanishNum: %d, comboNum: %d, comboPlus: %f\n\n", 
-        allBanishNum, comboNum, comboPlus);
+        bi->banishableNum, comboNum, comboPlus);
     }
 
     int recover = randomizedDamage(RECOVER_NUM * comboPlus, BLUR_DAMAGE);
