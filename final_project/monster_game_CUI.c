@@ -1,21 +1,34 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
 
 // (a)属性
-typedef enum Element {FLAME, AQUA, LEAF, GROUND, SOUL, EMPTY} Element;
+typedef enum Element
+{
+    FLAME,
+    AQUA,
+    LEAF,
+    GROUND,
+    SOUL,
+    EMPTY
+} Element;
 
 // (b)属性別の記号
-const char ELEMENT_MARK[EMPTY+1] = {'*','~','%','#','+', ' '};
+const char ELEMENT_MARK[EMPTY + 1] = {'*', '~', '%', '#', '+', ' '};
 
 // (d) 宝石の最大個数を定義する
-enum {MAX_GEMS = 14, BLUR_DAMAGE = 10, RECOVER_NUM = 20};
+enum
+{
+    MAX_GEMS = 14,
+    BLUR_DAMAGE = 10,
+    RECOVER_NUM = 20
+};
 
 // (e) 攻撃元の属性と攻撃を受ける属性を添字として入れるとダメージ増幅率が取り出せる二次元配列
 const double BOOST_DAMAGE[GROUND + 1][GROUND + 1] = {
-    //FLAME AQUA LEAF GROUND
+    // FLAME AQUA LEAF GROUND
     {1.0, 0.5, 2.0, 1.0},
     {2.0, 1.0, 1.0, 0.5},
     {0.5, 1.0, 1.0, 2.0},
@@ -23,227 +36,246 @@ const double BOOST_DAMAGE[GROUND + 1][GROUND + 1] = {
 };
 
 // (f) モンスター
-typedef struct MONSTER {
-  const char* name;
-  Element element;
-  const int maxhp;
-  int hp;
-  const int attack;
-  const int defense;
+typedef struct MONSTER
+{
+    const char *name;
+    Element element;
+    const int maxhp;
+    int hp;
+    const int attack;
+    const int defense;
 } Monster;
 
 // (g)ダンジョン
-typedef struct DUNGEON {
-  Monster* monsters;
-  const int numMonsters;
+typedef struct DUNGEON
+{
+    Monster *monsters;
+    const int numMonsters;
 } Dungeon;
 
 // (h)パーティ関連情報
-typedef struct PARTY {
-  const char* playername;
-  Monster* partyMonsters;
-  const int numMonsters;
-  int partyHp;
-  const int aveDeffence;
-  const int maxPartyHp;
+typedef struct PARTY
+{
+    const char *playername;
+    Monster *partyMonsters;
+    const int numMonsters;
+    int partyHp;
+    const int aveDeffence;
+    const int maxPartyHp;
 } Party;
 
 // (i) バトルフィールド構造体
-typedef struct BATTLEFIELD {
-    Party* pParty;
-    Monster* pMonsters;
+typedef struct BATTLEFIELD
+{
+    Party *pParty;
+    Monster *pMonsters;
     Element gems[MAX_GEMS];
 } BattleField;
 
 // (j) 消去可能な宝石の並びに関する構造体
-typedef struct BANISHINFO {
-  Element banishableElement;
-  int banishableFrom;
-  int banishableNum;
+typedef struct BANISHINFO
+{
+    Element banishableElement;
+    int banishableFrom;
+    int banishableNum;
 } Banishinfo;
 
 // Prototype Declations
-
-int traverseDungeon(char* playerName, Dungeon* pDungeon, Party* pPartyinfo);
-int engageCombat(Party* pPartyinfo, Monster* pEnemy);
-Party assembleTeam(char* playerName,Monster* pMonsters, int monsterNum);
-void displayTeam(Party* pPartyinfo);
-void playerTurn(BattleField* pBattleField);
-void performAttack(BattleField* pField, Banishinfo* bi, int comboNum);
-void enemyTurn(BattleField* pBattleField);
-void enemyStrike(Monster* pEnemy, Party* pPartyinfo);
-void displayBattlefield(BattleField* pBattleField);
-bool validateCommand(char* pInput);
-void exchangeGem(Element* gems, int pos, int step);
-void checkAllGems(BattleField* pField);
-Banishinfo identifyRemovableGems(Element* pGems);
-void removeGems(BattleField* pField, Banishinfo* bi, int comboNum);
-void compactGems(Element* pGems);
-void recoverHealth(BattleField* pField, Banishinfo* bi,int comboNum);
+int traverseDungeon(char *playerName, Dungeon *pDungeon, Party *pPartyinfo);
+int engageCombat(Party *pPartyinfo, Monster *pEnemy);
+Party assembleTeam(char *playerName, Monster *pMonsters, int monsterNum);
+void displayTeam(Party *pPartyinfo);
+void playerTurn(BattleField *pBattleField);
+void performAttack(BattleField *pField, Banishinfo *bi, int comboNum);
+void enemyTurn(BattleField *pBattleField);
+void enemyStrike(Monster *pEnemy, Party *pPartyinfo);
+void displayBattlefield(BattleField *pBattleField);
+bool validateCommand(char *pInput);
+void exchangeGem(Element *gems, int pos, int step);
+void checkAllGems(BattleField *pField);
+Banishinfo identifyRemovableGems(Element *pGems);
+void removeGems(BattleField *pField, Banishinfo *bi, int comboNum);
+void compactGems(Element *pGems);
+void recoverHealth(BattleField *pField, Banishinfo *bi, int comboNum);
 
 // ユーティリティ関数
-void showMonsterName(Monster* monster);
-void initializeGems(BattleField* pBattleField);
-void displayGems(Element* pGems);
+void showMonsterName(Monster *monster);
+void initializeGems(BattleField *pBattleField);
+void displayGems(Element *pGems);
 void displayGem(Element e);
-void shiftGemPosition(Element* pGems, int fromPos, int toPos, bool printProcess);
-int countSpecificGmes(Element* pGems, Element target);
-void generateNewGems(Element* pGems);
+void shiftGemPosition(Element *pGems, int fromPos, int toPos, bool printProcess);
+int countSpecificGmes(Element *pGems, Element target);
+void generateNewGems(Element *pGems);
 int randomizedDamage(int base, int blurNum);
-int computeEnemyAttack(Monster* pEnemy, Party* pParty);
-int computePartyAttack(Monster* pEnemy, Monster* pAttacker, Banishinfo* bi, int comboNum);
-int computeRecoveryAmount(Party* pParty, Banishinfo* bi, int comboNum);
+int computeEnemyAttack(Monster *pEnemy, Party *pParty);
+int computePartyAttack(Monster *pEnemy, Monster *pAttacker, Banishinfo *bi, int comboNum);
+int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum);
 
 // Functions Declation parts
 
 // (1)ゲーム開始から終了までの流れ
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  srand((unsigned)time(NULL));
+    srand((unsigned)time(NULL));
 
-  char playerName[] = "test";
+    char playerName[] = "test";
 
-  printf("*** Monster Battle ***\n");
+    printf("*** Monster Battle ***\n");
 
-  // ダンジョンの準備
-  Monster dungeonMonsters[] = {
-    {"Slime", AQUA, 100, 100, 10,  5},
-    {"Goblin", GROUND, 200, 200, 20, 15},
-    {"Crow", LEAF, 300, 300, 30, 25},
-    {"Bear", LEAF, 400, 400, 40, 30},
-    {"Devil", FLAME,  800, 800, 50, 40}
-  };
-  Dungeon dungeon = {dungeonMonsters, 5};
+    // ダンジョンの準備
+    Monster dungeonMonsters[] = {
+        {"Slime", AQUA, 100, 100, 10, 5},
+        {"Goblin", GROUND, 200, 200, 20, 15},
+        {"Crow", LEAF, 300, 300, 30, 25},
+        {"Bear", LEAF, 400, 400, 40, 30},
+        {"Devil", FLAME, 800, 800, 50, 40}};
+    Dungeon dungeon = {dungeonMonsters, 5};
 
     // 味方パーティの準備
-  Monster myMonsters[] = {
-    {"Efreet", FLAME, 150, 150, 25,  10},
-    {"Wing", LEAF, 150, 150, 15, 10},
-    {"Tiger", GROUND, 150, 150, 20, 5},
-    {"Leviathan", AQUA, 150, 150, 20, 15},
-  };
+    Monster myMonsters[] = {
+        {"Efreet", FLAME, 150, 150, 25, 10},
+        {"Wing", LEAF, 150, 150, 15, 10},
+        {"Tiger", GROUND, 150, 150, 20, 5},
+        {"Leviathan", AQUA, 150, 150, 20, 15},
+    };
 
-  //(4) assembleTeam関数
-   Party partyInfo = assembleTeam(playerName, myMonsters, 4); 
+    //(4) assembleTeam関数
+    Party partyInfo = assembleTeam(playerName, myMonsters, 4);
 
-  // いざ、ダンジョンへ
-  int winCount = traverseDungeon(playerName, &dungeon, &partyInfo);
+    // いざ、ダンジョンへ
+    int winCount = traverseDungeon(playerName, &dungeon, &partyInfo);
 
-  // 冒険終了後
-  if(winCount == dungeon.numMonsters) {
-    printf("***GAME CLEAR!***\n");
-  }  else {
-    printf("***GAME OVER***\n");
-  }
-  printf("倒したモンスター数＝%d\n", winCount);
-  return 0;
+    // 冒険終了後
+    if (winCount == dungeon.numMonsters)
+    {
+        printf("***GAME CLEAR!***\n");
+    }
+    else
+    {
+        printf("***GAME OVER***\n");
+    }
+    printf("倒したモンスター数＝%d\n", winCount);
+    return 0;
 }
 
 // (2)ダンジョン開始から終了までの流れ
-int traverseDungeon(char* playerName, Dungeon* pDungeon, Party* pPartyinfo)
+int traverseDungeon(char *playerName, Dungeon *pDungeon, Party *pPartyinfo)
 {
-  printf("%sのパーティ(HP=%d)はダンジョンに到着した\n", playerName, pPartyinfo->partyHp);
+    printf("%sのパーティ(HP=%d)はダンジョンに到着した\n", playerName, pPartyinfo->partyHp);
     //(5) パーティ情報を表示
-    displayTeam(pPartyinfo);    
+    displayTeam(pPartyinfo);
 
-  // そのダンジョンでバトルを繰り返す
-  int winCount = 0;
-  for(int i = 0; i < pDungeon->numMonsters; i++) {
-    winCount += engageCombat(pPartyinfo, &(pDungeon->monsters[i]));
-  }
+    // そのダンジョンでバトルを繰り返す
+    int winCount = 0;
+    for (int i = 0; i < pDungeon->numMonsters; i++)
+    {
+        winCount += engageCombat(pPartyinfo, &(pDungeon->monsters[i]));
+    }
 
-  printf("%sのパーティはダンジョンを制覇した！\n", playerName, pPartyinfo->partyHp);
-  return winCount;
+    printf("%sのパーティはダンジョンを制覇した！\n", playerName, pPartyinfo->partyHp);
+    return winCount;
 }
 
 // (3)バトル開始から終了までの流れ
-int engageCombat(Party* pPartyinfo, Monster* pEnemy)
+int engageCombat(Party *pPartyinfo, Monster *pEnemy)
 {
     BattleField battleField = {pPartyinfo, pEnemy};
     initializeGems(&battleField);
 
-  showMonsterName(pEnemy);
-  printf("が現れた！\n\n");
-
-  while (pPartyinfo->partyHp > 0 && pEnemy->hp > 0){
-    playerTurn(&battleField);
-    if (pEnemy->hp > 0){
-        enemyTurn(&battleField);
-    }
-  }
-
-  // ダミーのため速攻倒す
-  int count;
-  if (pEnemy->hp <= 0){
     showMonsterName(pEnemy);
-    printf("を倒した！\n\n");
-    printf("%sはさらに奥へと進んだ\n\n", pPartyinfo->playername);
-    count = 1;
-  } else if (pPartyinfo->partyHp <= 0){
-    printf("敵モンスターに敗れた！\n");
-    count = 0;
-  }
-  return count;
+    printf("が現れた！\n\n");
+
+    while (pPartyinfo->partyHp > 0 && pEnemy->hp > 0)
+    {
+        playerTurn(&battleField);
+        if (pEnemy->hp > 0)
+        {
+            enemyTurn(&battleField);
+        }
+    }
+
+    // ダミーのため速攻倒す
+    int count;
+    if (pEnemy->hp <= 0)
+    {
+        showMonsterName(pEnemy);
+        printf("を倒した！\n\n");
+        printf("%sはさらに奥へと進んだ\n\n", pPartyinfo->playername);
+        count = 1;
+    }
+    else if (pPartyinfo->partyHp <= 0)
+    {
+        printf("敵モンスターに敗れた！\n");
+        count = 0;
+    }
+    return count;
 }
 
 // (4)味方モンスターとプレイヤー名を受け取ってパーティ情報構造体を返却
-Party assembleTeam(char* playerName,Monster* pMonsters, int monsterNum)
+Party assembleTeam(char *playerName, Monster *pMonsters, int monsterNum)
 {
     int partyHp = 0;
     int sumDefence = 0;
     int aveDefence = 0;
-   for (int i=0; i<monsterNum; i++){
-    partyHp += pMonsters[i].hp; 
-    sumDefence += pMonsters[i].defense;
-   };
-   aveDefence = sumDefence / monsterNum;
-   Party p = {playerName, pMonsters, monsterNum, partyHp, aveDefence, partyHp}; 
-   return p;
+    for (int i = 0; i < monsterNum; i++)
+    {
+        partyHp += pMonsters[i].hp;
+        sumDefence += pMonsters[i].defense;
+    };
+    aveDefence = sumDefence / monsterNum;
+    Party p = {playerName, pMonsters, monsterNum, partyHp, aveDefence, partyHp};
+    return p;
 }
 
 //(5) パーティ情報の表示
-void displayTeam(Party* pPartyinfo)
+void displayTeam(Party *pPartyinfo)
 {
     printf("パーティ編成------\n");
-    for (int i=0;i<pPartyinfo->numMonsters;i++){
+    for (int i = 0; i < pPartyinfo->numMonsters; i++)
+    {
         showMonsterName(&(pPartyinfo->partyMonsters)[i]);
         printf(" HP=%d Attack=%d Defence=%d\n",
-            (pPartyinfo->partyMonsters)[i].hp,
-            (pPartyinfo->partyMonsters)[i].attack,
-            (pPartyinfo->partyMonsters)[i].defense
-        );
+               (pPartyinfo->partyMonsters)[i].hp,
+               (pPartyinfo->partyMonsters)[i].attack,
+               (pPartyinfo->partyMonsters)[i].defense);
     }
     printf("-------------\n");
 }
 
 //(6) onPlayerTunrn関数
-void playerTurn(BattleField* pBattleField)
+void playerTurn(BattleField *pBattleField)
 {
     printf("【%sのターン】\n", pBattleField->pParty->playername);
     displayBattlefield(pBattleField);
     char userInput[3];
-    do {
+    do
+    {
         printf("コマンド?>");
         scanf("%2s", userInput);
-    } while(validateCommand(userInput) == false);
-    shiftGemPosition(pBattleField->gems, userInput[0] - 'A', userInput[1]- 'A', true);
+    } while (validateCommand(userInput) == false);
+    shiftGemPosition(pBattleField->gems, userInput[0] - 'A', userInput[1] - 'A', true);
     checkAllGems(pBattleField);
 }
 
 //(7) performAttack関数
-void performAttack(BattleField* pField, Banishinfo* bi, int comboNum)
+void performAttack(BattleField *pField, Banishinfo *bi, int comboNum)
 {
-    for (int i = 0; i < pField->pParty->numMonsters; i++){
+    for (int i = 0; i < pField->pParty->numMonsters; i++)
+    {
         Monster attacker = pField->pParty->partyMonsters[i];
-        
-        if (attacker.element == bi->banishableElement){
+
+        if (attacker.element == bi->banishableElement)
+        {
             int damage = computePartyAttack(pField->pMonsters, &attacker, bi, comboNum);
             pField->pMonsters->hp -= damage;
-            
-            if (comboNum == 1){
+
+            if (comboNum == 1)
+            {
                 showMonsterName(&attacker);
                 printf("の攻撃 !\n");
-            } else {
+            }
+            else
+            {
                 showMonsterName(&attacker);
                 printf("の攻撃 ! %d COMBO!\n", comboNum);
             }
@@ -254,7 +286,7 @@ void performAttack(BattleField* pField, Banishinfo* bi, int comboNum)
 }
 
 //(8) enemyTurn関数実装
-void enemyTurn(BattleField* pField)
+void enemyTurn(BattleField *pField)
 {
     printf("【");
     showMonsterName(pField->pMonsters);
@@ -263,20 +295,21 @@ void enemyTurn(BattleField* pField)
 }
 
 //(9) enemyStrike関数の実装
-void enemyStrike(Monster* pEnemy, Party* pPartyinfo)
+void enemyStrike(Monster *pEnemy, Party *pPartyinfo)
 {
     int damage = computeEnemyAttack(pEnemy, pPartyinfo);
-    pPartyinfo->partyHp -= damage; 
+    pPartyinfo->partyHp -= damage;
     printf("%d のダメージを受けた\n\n", damage);
 }
 
 //(10) displayBattlefield関数
-void displayBattlefield(BattleField* pBattleField)
+void displayBattlefield(BattleField *pBattleField)
 {
     printf("-------------------------\n");
     showMonsterName(pBattleField->pMonsters);
     printf(" HP= %d / %d \n\n\n", pBattleField->pMonsters->hp, pBattleField->pMonsters->maxhp);
-    for (int i = 0 ; i < pBattleField->pParty->numMonsters; i++){
+    for (int i = 0; i < pBattleField->pParty->numMonsters; i++)
+    {
         showMonsterName(&pBattleField->pParty->partyMonsters[i]);
         printf(" ");
     }
@@ -284,8 +317,9 @@ void displayBattlefield(BattleField* pBattleField)
     printf(" HP= %d / %d\n", pBattleField->pParty->partyHp, pBattleField->pParty->maxPartyHp);
     printf("-------------------------\n");
     printf(" ");
-    for (int i = 0; i < MAX_GEMS; i++){
-      printf("%c ", 'A'+i);
+    for (int i = 0; i < MAX_GEMS; i++)
+    {
+        printf("%c ", 'A' + i);
     }
     printf("\n");
     displayGems(pBattleField->gems);
@@ -293,116 +327,145 @@ void displayBattlefield(BattleField* pBattleField)
 }
 
 // (11) ユーザー入力をチェックする関数
-bool validateCommand(char* pInput)
+bool validateCommand(char *pInput)
 {
-    if(strlen(pInput) != 2) return false;
-    if (pInput[0] < 'A'|| pInput[0] > 'N') return false;
-    if (pInput[1] < 'A'|| pInput[1] > 'N') return false;
-    if (pInput[0] == pInput[1]) return false;
+    if (strlen(pInput) != 2)
+        return false;
+    if (pInput[0] < 'A' || pInput[0] > 'N')
+        return false;
+    if (pInput[1] < 'A' || pInput[1] > 'N')
+        return false;
+    if (pInput[0] == pInput[1])
+        return false;
     return true;
 }
 
 // (12)宝石の並びに合わせて処理する関数
-void checkAllGems(BattleField* pField)
+void checkAllGems(BattleField *pField)
 {
-  Banishinfo banishable = identifyRemovableGems(pField->gems);
-  int comboNum = 1;
+    Banishinfo banishable = identifyRemovableGems(pField->gems);
+    int comboNum = 1;
 
-  if(banishable.banishableNum != 0) {
-    removeGems(pField, &banishable, comboNum);
-    compactGems(pField->gems);
+    if (banishable.banishableNum != 0)
+    {
+        removeGems(pField, &banishable, comboNum);
+        compactGems(pField->gems);
 
-    while (true) {
-        Banishinfo combo = identifyRemovableGems(pField->gems);
-        if(combo.banishableNum != 0) {
-            comboNum++;
+        while (true)
+        {
+            Banishinfo combo = identifyRemovableGems(pField->gems);
+            if (combo.banishableNum != 0)
+            {
+                comboNum++;
 
-            removeGems(pField, &combo, comboNum);
-            compactGems(pField->gems);
-        } else if(combo.banishableNum == 0) break;
+                removeGems(pField, &combo, comboNum);
+                compactGems(pField->gems);
+            }
+            else if (combo.banishableNum == 0)
+                break;
+        }
+
+        generateNewGems(pField->gems);
+
+        while (true)
+        {
+            Banishinfo combo = identifyRemovableGems(pField->gems);
+            if (combo.banishableNum != 0)
+            {
+                comboNum++;
+
+                removeGems(pField, &combo, comboNum);
+                compactGems(pField->gems);
+            }
+            else if (combo.banishableNum == 0)
+                break;
+        }
+
+        generateNewGems(pField->gems);
     }
-
-    generateNewGems(pField->gems);
-    
-    while (true) {
-        Banishinfo combo = identifyRemovableGems(pField->gems);
-        if(combo.banishableNum != 0) {
-            comboNum++;
-
-            removeGems(pField, &combo, comboNum);
-            compactGems(pField->gems);
-        } else if(combo.banishableNum == 0) break;
-    }
-    
-    generateNewGems(pField->gems);
-  }
 }
 
 // (13) 消去可能な宝石の並びがないか確認する関数
-Banishinfo identifyRemovableGems(Element* pGems)
+Banishinfo identifyRemovableGems(Element *pGems)
 {
-  const int threshold = 3;
-  for(int i = 0; i < MAX_GEMS - threshold + 1; i++) {
-    int banishNum = 1;
-    if (pGems[i] == EMPTY) continue;
-    for(int j = i + 1; j < MAX_GEMS; j++) {
-      if(pGems[i] == pGems[j]) {
-        banishNum++;
-      } else {
-        break;
-      }
+    const int threshold = 3;
+    for (int i = 0; i < MAX_GEMS - threshold + 1; i++)
+    {
+        int banishNum = 1;
+        if (pGems[i] == EMPTY)
+            continue;
+        for (int j = i + 1; j < MAX_GEMS; j++)
+        {
+            if (pGems[i] == pGems[j])
+            {
+                banishNum++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (banishNum >= threshold)
+        {
+            Banishinfo bi = {pGems[i], i, banishNum};
+            return bi;
+        }
     }
-    if(banishNum >= threshold) {
-      Banishinfo bi = {pGems[i], i, banishNum};
-    return bi;
-    }
-  }
-  Banishinfo notBanish = {EMPTY, 0, 0};
-  return notBanish;
+    Banishinfo notBanish = {EMPTY, 0, 0};
+    return notBanish;
 }
 
 // (14) 宝石を消去して効果を発動する関数
-void removeGems(BattleField* pField, Banishinfo* bi, int comboNum)
+void removeGems(BattleField *pField, Banishinfo *bi, int comboNum)
 {
-  for (int i = bi->banishableFrom; i < bi->banishableFrom + bi->banishableNum; i++) {
-    pField->gems[i] = EMPTY;
-  }
+    for (int i = bi->banishableFrom; i < bi->banishableFrom + bi->banishableNum; i++)
+    {
+        pField->gems[i] = EMPTY;
+    }
     displayGems(pField->gems);
-    switch(bi->banishableElement){
-        case FLAME: case LEAF: case AQUA: case GROUND:
-            performAttack(pField, bi, comboNum);
-            break;
-        case SOUL:
-            recoverHealth(pField, bi, comboNum);
+    switch (bi->banishableElement)
+    {
+    case FLAME:
+    case LEAF:
+    case AQUA:
+    case GROUND:
+        performAttack(pField, bi, comboNum);
+        break;
+    case SOUL:
+        recoverHealth(pField, bi, comboNum);
     }
 }
 
 // (15) 宝石が消去された後、残ったGemを左詰する関数
-void compactGems(Element* pGems)
+void compactGems(Element *pGems)
 {
-  int banishNum = countSpecificGmes(pGems, EMPTY);
-  for(int i = 0; i < MAX_GEMS - banishNum; i++) {
-    if(pGems[i] == EMPTY) {
-      shiftGemPosition(pGems, i, MAX_GEMS - 1, false);
-      i--;
+    int banishNum = countSpecificGmes(pGems, EMPTY);
+    for (int i = 0; i < MAX_GEMS - banishNum; i++)
+    {
+        if (pGems[i] == EMPTY)
+        {
+            shiftGemPosition(pGems, i, MAX_GEMS - 1, false);
+            i--;
+        }
     }
-  }
-  displayGems(pGems);
+    displayGems(pGems);
 }
 
 // (16) 消滅したGemスロットに再度Gemを充填する関数
-void generateNewGems(Element* pGems)
+void generateNewGems(Element *pGems)
 {
-  for(int i = 0; i < MAX_GEMS; i++) {
-    if(pGems[i] == EMPTY) {
-      pGems[i] = rand()%EMPTY;
+    for (int i = 0; i < MAX_GEMS; i++)
+    {
+        if (pGems[i] == EMPTY)
+        {
+            pGems[i] = rand() % EMPTY;
+        }
     }
-  }
-  displayGems(pGems);
-  printf("\n");
+    displayGems(pGems);
+    printf("\n");
 }
 
-void recoverHealth(BattleField* pField, Banishinfo* bi,int comboNum)
+void recoverHealth(BattleField *pField, Banishinfo *bi, int comboNum)
 {
     int damage = computeRecoveryAmount(pField->pParty, bi, comboNum);
     pField->pParty->partyHp += damage;
@@ -410,26 +473,28 @@ void recoverHealth(BattleField* pField, Banishinfo* bi,int comboNum)
 }
 
 // (A)モンスター名のカラー表示
-void showMonsterName(Monster* pMonster)
+void showMonsterName(Monster *pMonster)
 {
-  char symbol = ELEMENT_MARK[pMonster->element];
+    char symbol = ELEMENT_MARK[pMonster->element];
 
-  printf("%c%s%c", symbol, pMonster->name, symbol);
+    printf("%c%s%c", symbol, pMonster->name, symbol);
 }
 
 // (B) initializeGems関数
-void initializeGems(BattleField* pBattleField)
+void initializeGems(BattleField *pBattleField)
 {
-    for (int i=0 ; i<MAX_GEMS; i++){
-        pBattleField->gems[i] = rand()%EMPTY;
+    for (int i = 0; i < MAX_GEMS; i++)
+    {
+        pBattleField->gems[i] = rand() % EMPTY;
     };
 }
 
 // (C) displayGems関数
-void displayGems(Element* pGems)
+void displayGems(Element *pGems)
 {
     printf(" ");
-    for (int i = 0; i < MAX_GEMS; i++){
+    for (int i = 0; i < MAX_GEMS; i++)
+    {
         displayGem(pGems[i]);
     }
     printf("\n");
@@ -442,19 +507,21 @@ void displayGem(Element e)
 }
 
 // (E) shiftGemPosition関数
-void shiftGemPosition(Element* pGems, int fromPos, int toPos, bool printProcess)
+void shiftGemPosition(Element *pGems, int fromPos, int toPos, bool printProcess)
 {
     int step = (toPos > fromPos) ? 1 : -1;
 
     displayGems(pGems);
-    for(int i = fromPos; i != toPos; i += step){
+    for (int i = fromPos; i != toPos; i += step)
+    {
         exchangeGem(pGems, i, step);
-        if(printProcess) displayGems(pGems);
+        if (printProcess)
+            displayGems(pGems);
     }
 }
 
 // (F) Gemを一つずつ動かす関数
-void exchangeGem(Element* gems, int pos, int step)
+void exchangeGem(Element *gems, int pos, int step)
 {
     Element buf = gems[pos];
     gems[pos] = gems[pos + step];
@@ -462,15 +529,17 @@ void exchangeGem(Element* gems, int pos, int step)
 }
 
 // (G) 特定のGemをカウントする関数
-int countSpecificGmes(Element* pGems, Element target)
+int countSpecificGmes(Element *pGems, Element target)
 {
-  int count = 0;
-  for(int i=0; i < MAX_GEMS; i++) {
-    if(pGems[i] == target) {
-      count++;
+    int count = 0;
+    for (int i = 0; i < MAX_GEMS; i++)
+    {
+        if (pGems[i] == target)
+        {
+            count++;
+        }
     }
-  }
-  return count;
+    return count;
 }
 
 // (H) 引数を指定値分だけ変動させて返却する関数
@@ -482,23 +551,26 @@ int randomizedDamage(int base, int blurNum)
 }
 
 // (I) 敵の攻撃ダメージを計算する関数
-int computeEnemyAttack(Monster* pEnemy, Party* pParty)
+int computeEnemyAttack(Monster *pEnemy, Party *pParty)
 {
     int base = pEnemy->attack - pParty->aveDeffence;
     int damage = randomizedDamage(base, BLUR_DAMAGE);
-    if (damage <= 0) damage = 1;
+    if (damage <= 0)
+        damage = 1;
     return damage;
 }
 
 // (J) 味方の攻撃ダメージを計算する関数
-int computePartyAttack(Monster* pEnemy, Monster* pAttacker, Banishinfo* bi, int comboNum)
+int computePartyAttack(Monster *pEnemy, Monster *pAttacker, Banishinfo *bi, int comboNum)
 {
     int base = (pAttacker->attack - pEnemy->defense) *
-    BOOST_DAMAGE[pAttacker->element][pEnemy->element];
+               BOOST_DAMAGE[pAttacker->element][pEnemy->element];
     double comboPlus = 1;
 
-    if (comboNum >= 2){
-        for (int i = 0; i < bi->banishableNum -3 + comboNum; i++){
+    if (comboNum >= 2)
+    {
+        for (int i = 0; i < bi->banishableNum - 3 + comboNum; i++)
+        {
             comboPlus *= 1.5;
         }
     }
@@ -508,23 +580,26 @@ int computePartyAttack(Monster* pEnemy, Monster* pAttacker, Banishinfo* bi, int 
 }
 
 // (K) 味方パーティの合計HPの回復量を計算する関数
-int computeRecoveryAmount(Party* pParty, Banishinfo* bi, int comboNum)
+int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum)
 {
     int hpBuf = pParty->partyHp;
     double comboPlus = 1;
 
-    if (comboNum >= 2){
-        for (int i = 0; i < bi->banishableNum -3 + comboNum; i++){
+    if (comboNum >= 2)
+    {
+        for (int i = 0; i < bi->banishableNum - 3 + comboNum; i++)
+        {
             comboPlus *= 1.5;
         }
-        printf("allBanishNum: %d, comboNum: %d, comboPlus: %f\n\n", 
-        bi->banishableNum, comboNum, comboPlus);
+        printf("allBanishNum: %d, comboNum: %d, comboPlus: %f\n\n",
+               bi->banishableNum, comboNum, comboPlus);
     }
 
     int recover = randomizedDamage(RECOVER_NUM * comboPlus, BLUR_DAMAGE);
 
-    if(pParty->partyHp >= pParty->maxPartyHp){
-        recover = pParty->maxPartyHp -hpBuf;
+    if (pParty->partyHp >= pParty->maxPartyHp)
+    {
+        recover = pParty->maxPartyHp - hpBuf;
     };
 
     return recover;
