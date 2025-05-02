@@ -566,8 +566,6 @@ int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum)
         {
             comboPlus *= 1.5;
         }
-        printf("allBanishNum: %d, comboNum: %d, comboPlus: %f\n\n",
-               bi->banishableNum, comboNum, comboPlus);
     }
 
     int recover = randomizedDamage(RECOVER_NUM * comboPlus, BLUR_DAMAGE);
