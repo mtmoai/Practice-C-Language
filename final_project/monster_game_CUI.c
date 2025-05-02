@@ -344,44 +344,19 @@ bool validateCommand(char *pInput)
 void checkAllGems(BattleField *pField)
 {
     Banishinfo banishable = identifyRemovableGems(pField->gems);
-    int comboNum = 1;
+    int comboNum = 0;
 
-    if (banishable.banishableNum != 0)
+    while (banishable.banishableNum != 0)
     {
+        comboNum++;
         removeGems(pField, &banishable, comboNum);
         compactGems(pField->gems);
-
-        while (true)
+        banishable = identifyRemovableGems(pField->gems);
+        if (banishable.banishableNum == 0)
         {
-            Banishinfo combo = identifyRemovableGems(pField->gems);
-            if (combo.banishableNum != 0)
-            {
-                comboNum++;
-
-                removeGems(pField, &combo, comboNum);
-                compactGems(pField->gems);
-            }
-            else if (combo.banishableNum == 0)
-                break;
+            generateNewGems(pField->gems);
+            banishable = identifyRemovableGems(pField->gems);
         }
-
-        generateNewGems(pField->gems);
-
-        while (true)
-        {
-            Banishinfo combo = identifyRemovableGems(pField->gems);
-            if (combo.banishableNum != 0)
-            {
-                comboNum++;
-
-                removeGems(pField, &combo, comboNum);
-                compactGems(pField->gems);
-            }
-            else if (combo.banishableNum == 0)
-                break;
-        }
-
-        generateNewGems(pField->gems);
     }
 }
 
@@ -591,8 +566,6 @@ int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum)
         {
             comboPlus *= 1.5;
         }
-        printf("allBanishNum: %d, comboNum: %d, comboPlus: %f\n\n",
-               bi->banishableNum, comboNum, comboPlus);
     }
 
     int recover = randomizedDamage(RECOVER_NUM * comboPlus, BLUR_DAMAGE);
