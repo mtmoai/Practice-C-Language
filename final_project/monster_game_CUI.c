@@ -106,7 +106,7 @@ void displayGem(Element e);
 void shiftGemPosition(Element *pGems, int fromPos, int toPos, bool printProcess);
 int countSpecificGmes(Element *pGems, Element target);
 void generateNewGems(Element *pGems);
-int randomizedDamage(int base, int blurNum);
+int randomizedDamage(double base, int blurNum);
 int computeEnemyAttack(Monster *pEnemy, Party *pParty);
 int computePartyAttack(Monster *pEnemy, Monster *pAttacker, Banishinfo *bi, int comboNum);
 int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum);
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 {
     if (argc != 2)
     {
-        printf("ERROR: コマンドライン引数としてユーザー名を1単語で入力してください。");
+        printf("ERROR: コマンドライン引数としてユーザー名を1単語で入力してください。\n");
         exit(1);
     }
     char *playerName = argv[1];
@@ -177,14 +177,14 @@ int traverseDungeon(char *playerName, Dungeon *pDungeon, Party *pPartyinfo)
         winCount += engageCombat(pPartyinfo, &(pDungeon->monsters[i]));
     }
 
-    printf("%sのパーティはダンジョンを制覇した！\n", playerName, pPartyinfo->partyHp);
+    printf("%sのパーティはダンジョンを制覇した！\n", playerName);
     return winCount;
 }
 
 // (3)バトル開始から終了までの流れ
 int engageCombat(Party *pPartyinfo, Monster *pEnemy)
 {
-    BattleField battleField = {pPartyinfo, pEnemy};
+    BattleField battleField = {pPartyinfo, pEnemy, {0}};
     initializeGems(&battleField);
 
     showMonsterName(pEnemy);
@@ -413,6 +413,11 @@ void removeGems(BattleField *pField, Banishinfo *bi, int comboNum)
         break;
     case SOUL:
         recoverHealth(pField, bi, comboNum);
+        break;
+    case EMPTY:
+    default:
+        // Do nothing.
+        break;
     }
 }
 
@@ -523,10 +528,10 @@ int countSpecificGmes(Element *pGems, Element target)
 }
 
 // (H) 引数を指定値分だけ変動させて返却する関数
-int randomizedDamage(int base, int blurNum)
+int randomizedDamage(double base, int blurNum)
 {
     int blurPercent = rand() % (blurNum * 2 + 1) - blurNum + 100;
-    int damage = base * blurPercent / 100;
+    int damage = (int)(base * blurPercent / 100);
     return damage;
 }
 
@@ -543,8 +548,8 @@ int computeEnemyAttack(Monster *pEnemy, Party *pParty)
 // (J) 味方の攻撃ダメージを計算する関数
 int computePartyAttack(Monster *pEnemy, Monster *pAttacker, Banishinfo *bi, int comboNum)
 {
-    int base = (pAttacker->attack - pEnemy->defense) *
-               BOOST_DAMAGE[pAttacker->element][pEnemy->element];
+    int base = (int)((pAttacker->attack - pEnemy->defense) *
+               BOOST_DAMAGE[pAttacker->element][pEnemy->element]);
     double comboPlus = 1;
 
     if (comboNum >= 2)
