@@ -116,9 +116,14 @@ int computeRecoveryAmount(Party *pParty, Banishinfo *bi, int comboNum);
 // (1)ゲーム開始から終了までの流れ
 int main(int argc, char **argv)
 {
-    srand((unsigned)time(NULL));
+    if (argc != 2)
+    {
+        printf("ERROR: コマンドライン引数としてユーザー名を1単語で入力してください。");
+        exit(1);
+    }
+    char *playerName = argv[1];
 
-    char playerName[] = "test";
+    srand((unsigned)time(NULL));
 
     printf("*** Monster Battle ***\n");
 
